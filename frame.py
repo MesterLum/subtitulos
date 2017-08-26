@@ -14,5 +14,6 @@ class Frame:
         self.__initialize()   
         
     def __initialize(self):
+
         self.__openfile = Button(self.__app, text="Abrir", command = lambda : self.__process.openFile())
         self.__openfile.grid(row=0,column=0)
