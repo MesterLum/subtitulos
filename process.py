@@ -4,6 +4,7 @@ from google import google
 import tkMessageBox
 from bs4 import BeautifulSoup
 import urllib2
+import threading
 
 """
     *Author: Cuauhtemoc Paez,
@@ -13,10 +14,20 @@ import urllib2
             la funcion openFile obtiene el nombre, es invocada desde el boton, obtiene-
             la ruta, en base a la ruta extrae el nombre con extension y lo limpio.
 
-            PROBLEMA: si hay mas de una extension solo limpia 1
+            PROBLEMA: si hay mas de una extension solo limpia 1,
+            *Update: Threading, se pueden anexar mas de un fichero para descargar el material.
+            
 """
 
 class Process:
+
+    global __ThreadFile
+
+    def __trheadDownloadSubtitles(self, nameSearch):
+        
+        self.__ThreadFile = threading.Thread(target=self.readDOM, args=(nameSearch,))
+        self.__ThreadFile.start()
+
 
     def openFile(self):
 
@@ -27,10 +38,9 @@ class Process:
         ext = name[nameLength-1]
 
         if (ext == "mp4" or ext == "mvk"):
-            nameClear = fileName.replace("."," ").replace(","," ").replace("-"," ")
-            nameSearch = "Subtitulos " + nameClear.replace(ext, "")
-            resultsGoogle = self.googleSearch(nameSearch)
-            self.readDOM(resultsGoogle)
+            nameClear = fileName.replace("."," ").replace(","," ").replace("-"," ").replace(ext, "")
+            nameSearch = "Subtitulos " + nameClear
+            self.__trheadDownloadSubtitles(nameSearch)
 
         else:
             tkMessageBox.showerror("ERROR!","Solo se permiten formatos .mp4 y mvk")
@@ -42,14 +52,14 @@ class Process:
         return search_results
 
 
-    def readDOM(self, search_results):
+    def readDOM(self, nameSearch):
 
-        for results in search_results:
+        print "Cargando..."
+        resultsGoogle = self.googleSearch(nameSearch)
+        for results in resultsGoogle:
             content = urllib2.urlopen(results.link)
             contentHTML = BeautifulSoup(content, "html.parser")
-            for link in contentHTML.find_all("a"):
+            for link in contentHTML.a["href"]:
                 print link
             break
-
-
-        
+        print "Termine"      
