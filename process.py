@@ -4,6 +4,7 @@ from google import google
 import tkMessageBox
 from bs4 import BeautifulSoup
 import urllib2
+import urllib
 import threading
 
 """
@@ -14,7 +15,8 @@ import threading
             la funcion openFile obtiene el nombre, es invocada desde el boton, obtiene-
             la ruta, en base a la ruta extrae el nombre con extension y lo limpio.
 
-            PROBLEMA: si hay mas de una extension solo limpia 1,
+            PROBLEMA: Si hay mas de una extension solo limpia 1,
+                      De momento solo funciona para subdix (pagina de subtitulos)
             *Update: Threading, se pueden anexar mas de un fichero para descargar el material.
             
 """
@@ -48,7 +50,7 @@ class Process:
 
     def googleSearch(self, search):
         
-        search_results = google.search(search, 3)
+        search_results = google.search(search, 1)
         return search_results
 
 
@@ -59,7 +61,24 @@ class Process:
         for results in resultsGoogle:
             content = urllib2.urlopen(results.link)
             contentHTML = BeautifulSoup(content, "html.parser")
-            for link in contentHTML.a["href"]:
-                print link
-            break
-        print "Termine"      
+            try:
+
+                for link in contentHTML.select("a[href*='bajar.php']"):
+                    href = BeautifulSoup(str(link), "html.parser")
+                    downloadLink = href.a['href']
+                    self.__downloadFile(downloadLink, nameSearch)
+                    
+
+            except ValueError:
+                
+                print "Hubo un error"
+
+            break       
+        print "Termine"   
+
+
+
+
+    def __downloadFile(self, url, name):
+
+        data = urllib.urlretrieve(url, name+'.srt')
